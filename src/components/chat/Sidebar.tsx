@@ -11,8 +11,16 @@ import {
   Users,
   Bell,
   Moon,
-  Sun
+  Sun,
+  LogOut
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface SidebarProps {
   currentUser: User;
@@ -20,6 +28,8 @@ interface SidebarProps {
   activeConversationId?: string;
   onSelectConversation: (id: string) => void;
   onNewChat?: () => void;
+  onSignOut?: () => void;
+  loading?: boolean;
   className?: string;
 }
 
@@ -29,6 +39,8 @@ export function Sidebar({
   activeConversationId,
   onSelectConversation,
   onNewChat,
+  onSignOut,
+  loading = false,
   className
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,9 +72,9 @@ export function Sidebar({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar user={currentUser} size="md" showStatus />
-            <div>
-              <h1 className="font-semibold text-sm">{currentUser.name}</h1>
-              <p className="text-xs text-muted-foreground">{currentUser.bio}</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="font-semibold text-sm truncate">{currentUser.name}</h1>
+              <p className="text-xs text-muted-foreground truncate">{currentUser.bio}</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -79,9 +91,22 @@ export function Sidebar({
             <button className="p-2 rounded-full hover:bg-sidebar-accent transition-colors">
               <Bell className="w-4 h-4 text-muted-foreground" />
             </button>
-            <button className="p-2 rounded-full hover:bg-sidebar-accent transition-colors">
-              <Settings className="w-4 h-4 text-muted-foreground" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 rounded-full hover:bg-sidebar-accent transition-colors">
+                  <Settings className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem>Edit Profile</DropdownMenuItem>
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onSignOut} className="text-destructive">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -123,10 +148,19 @@ export function Sidebar({
 
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
-        {filteredConversations.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          </div>
+        ) : filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <MessageSquare className="w-12 h-12 text-muted-foreground/30 mb-2" />
-            <p className="text-sm text-muted-foreground">No conversations found</p>
+            <p className="text-sm text-muted-foreground">
+              {conversations.length === 0 ? 'No conversations yet' : 'No conversations found'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Start a new chat to get going!
+            </p>
           </div>
         ) : (
           filteredConversations.map((conversation) => (
